@@ -1,8 +1,14 @@
 {
+  "builds": [
+    {
+      "src": "crud-app/package.json",
+      "use": "@vercel/static-build"
+    }
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/crud-app/index.html"
     }
   ]
 }
