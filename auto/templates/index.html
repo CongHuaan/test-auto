@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auto Import Excel</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Auto CRUD Import</p>
+          <h1>Upload Excel và tự động nhập liệu lên hệ thống</h1>
+          <p class="subtitle">Tải mẫu lên, upload file, xem preview và import lên app đã deploy.</p>
+        </div>
+        <div class="hero-actions">
+          <a class="button button-primary" href="{{ url_for('download_template', type=selected_type) }}">Tải template Excel</a>
+          <a class="button button-secondary" href="{{ url_for('download_sample', type=selected_type) }}">Tải sample data</a>
+        </div>
+      </header>
+
+      <div class="card info-card">
+        <h2>Hướng dẫn nhanh</h2>
+        <ol>
+          <li>Tải file mẫu Excel.</li>
+          <li>Điền dữ liệu theo 4 cột.</li>
+          <li>Upload file và xem preview.</li>
+          <li>Nhấn Import để bắt đầu chạy tự động.</li>
+        </ol>
+      </div>
+
+      <div class="card">
+        <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+          <label for="entity_type">Chọn loại template</label>
+          <select name="entity_type" id="entity_type">
+            {% for type in entity_types %}
+            <option value="{{ type }}" {% if selected_type == type %}selected{% endif %}>{{ type }}</option>
+            {% endfor %}
+          </select>
+          <label for="file">Chọn file Excel (.xlsx):</label>
+          <input type="file" name="file" id="file" accept=".xlsx" />
+          <button type="submit" class="button">Upload</button>
+        </form>
+      </div>
+
+      {% if upload_filename %}
+      <div class="card upload-card">
+        <div class="upload-summary">
+          <div>
+            <p class="label">File đã upload</p>
+            <p class="value">{{ upload_filename }}</p>
+            <p class="label">Loại dữ liệu</p>
+            <p class="value">{{ selected_type }}</p>
+          </div>
+          <form action="{{ url_for('do_import') }}" method="post">
+            <input type="hidden" name="filename" value="{{ upload_filename }}" />
+            <input type="hidden" name="entity_type" value="{{ selected_type }}" />
+            <button type="submit" class="button button-secondary">Import dữ liệu lên website</button>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if preview_data %}
+      <div class="card">
+        <h2>Preview file Excel</h2>
+        <table>
+          <thead>
+            <tr>
+              {% for header in preview_data[0].keys() %}
+              <th>{{ header }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in preview_data %}
+            <tr>
+              {% for value in row.values() %}
+              <td>{{ value }}</td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+
+      {% if result %}
+      <div class="card">
+        <h2>Kết quả</h2>
+        <p>{{ result.message }}</p>
+        <ul>
+          {% for row in result.results %}
+          <li>
+            Dòng {{ row.row }}: {{ 'OK' if row.success else 'Lỗi - ' + row.error }}
+          </li>
+          {% endfor %}
+        </ul>
+        {% if result.logs %}
+        <h3>Log chi tiết</h3>
+        <div class="log-area">
+          {% for line in result.logs %}
+          <div>{{ line }}</div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+      <div class="card">
+        <h2>Thông báo</h2>
+        <ul>
+          {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      {% endwith %}
+    </div>
+  </body>
+</html>
